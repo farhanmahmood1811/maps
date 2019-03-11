@@ -1,0 +1,98 @@
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<div class="container" id="app">
+    <div class="row">
+        <nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                </div>
+            </div>
+        </nav>
+    </div>
+    <div class="row">
+        <div class="col-md-10">
+            <form class="navbar-form navbar-left" role="form" @submit.prevent="handleSubmit">
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="From Location" v-model="location.origin">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="To Location" v-model="location.destination">
+                </div>
+                <button type="submit" class="btn btn-default"> Submit </button>
+            </form>
+        </div>
+        <div class="col-md-8">
+            <div class="panel panel-default" v-if="result.destination">
+                <div class="panel-heading">
+                    <p> Details </p>
+                </div>
+                <div class="panel-body">
+                    <p>Origin: {{ result.origin }}</p>
+                    <p>Destination: {{ result.destination }}</p>
+                    <p>Distance: {{ result.distance }}</p>
+                    <p>Estimated Time: {{ result.duration }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" v-if="message.length">
+        <div class="col-md-5 col-md-offset-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <p> {{ message }} </p>
+                </div>        
+            </div>
+        </div>
+    </div> 
+</div>
+<script>
+    var defaultText = "Enter Location Text"
+    var app = new Vue({
+        el: '#app',
+        // declare the data for the component (An array that houses the results and a query that holds the current location string)
+        data: {
+            result: {},
+            location: {},
+            message: defaultText
+        },
+        // declare methods in this Vue component. here only one method which performs the location is defined
+        methods: {
+            // make an axios request to the server with the current location query
+            handleSubmit: function() {
+                var hostUrl = "http://localhost:3000"
+                if(this.location.origin && this.location.destination) {
+                    this.message = ""
+                    
+                    let url = `${hostUrl}/map/matrix`
+                    const body = {
+                        "origin" : this.location.origin,
+                        "destination": this.location.destination
+                    }
+                    axios.post(url, body)
+                        .then(response => {
+                            const result = response.data.data
+                            if(result.error) {
+                                this.message = result.error
+                                this.result = {}
+                            } else {
+                                this.result = result
+                                this.message = ""
+                            }
+                        })
+                        .catch(err => {
+                            this.message = "Unable to process request"
+                            this.result = {}
+                        })
+                } else {
+                    this.message = defaultText
+                    this.result = {}
+                }
+            }
+        }
+    })
+</script>
+<!--- some styling for the page -->
+<style>
+    
+</style>
